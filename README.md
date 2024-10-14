@@ -2,7 +2,8 @@
 
 Este proyecto implementa el **Juego de la Vida de Conway** utilizando **compute shaders** en Unity, con la simulación ejecutándose en la **GPU** para maximizar el rendimiento y la velocidad. Al aprovechar la capacidad de procesamiento paralelo de la GPU, este enfoque permite manejar simulaciones complejas y de alta resolución de manera más eficiente que si se ejecutara en la CPU.
 
-![Uploading image.png…]()
+![image](https://github.com/user-attachments/assets/caa1ad9c-600e-44af-ad77-2e95129455fa)
+
 
 ## Descripción
 
