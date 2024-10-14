@@ -1,0 +1,122 @@
+#pragma kernel Perlin
+
+RWTexture2D<float4> ResultPerlin;
+uint randSeed;
+
+// Source:
+// https://gist.github.com/keijiro/24f9d505fac238c9a2982c0d6911d8e3
+uint rand(uint s)
+{
+    s ^= 2747636419u;
+    s *= 2654435769u;
+    s ^= s >> 16;
+    s *= 2654435769u;
+    s ^= s >> 16;
+    s *= 2654435769u;
+    return s;
+}
+float rand01(uint seed)
+{
+    return float(rand(seed)) / 4294967295.0; // 2^32-1
+}
+
+[numthreads(8, 8, 1)]
+void Perlin(uint3 id : SV_DispatchThreadID)
+{
+    uint width, height;
+    ResultPerlin.GetDimensions(width, height);
+    
+    float value = float(rand01((id.y * (id.x + rand(randSeed)))));
+    int final = 0;
+    if(value > 0.5)
+        final = 1;
+    
+    float4 color = float4(final,final, final, 1);
+    
+    ResultPerlin[id.xy] = color;
+}
+
+#pragma kernel Conway
+RWTexture2D<float4> ResultConway;
+
+[numthreads(8, 8, 1)]
+void Conway(uint3 id : SV_DispatchThreadID)
+{
+    uint width, height;
+    ResultConway.GetDimensions(width, height);
+    
+    uint currentValue = ResultConway.Load(float3(id.xy, 0));
+    
+    // Get count of neighbors
+    uint neighborCount = 0;
+    
+    for (int dx = -1; dx <= 1; dx++)
+    {
+        for (int dy = -1; dy <= 1; dy++)
+        {
+            // Current cell
+            if (dx == 0 && dy == 0)
+                continue;
+
+            float4 neighborColor = ResultConway.Load(int3(id.xy + int2(dx, dy), 0));
+            
+            if (neighborColor.r > 0.5)
+                neighborCount++;
+        }
+    }
+        
+    // Determinate the next state of the cell
+    float newValue = currentValue.r;
+
+    if (currentValue.r > 0.5)
+    {
+        if (neighborCount < 2 || neighborCount > 3)
+            newValue = 0;
+    }
+    else
+    {
+        if (neighborCount == 3)
+            newValue = 1;
+    }
+    
+    
+    ResultConway[id.xy] = float4(newValue, newValue, newValue, 1);
+}
+
+#pragma kernel Blur
+RWTexture2D<float4> ResultBlur;
+RWTexture2D<float4> SampleConway;
+int blurSize;
+
+[numthreads(8, 8, 1)]
+void Blur(uint3 id : SV_DispatchThreadID)
+{
+    uint width, height;
+    ResultBlur.GetDimensions(width, height);
+  
+    if(blurSize == 0)
+    {
+        ResultBlur[id.xy] = SampleConway.Load(int3(id.xy, 0));
+        return;
+    }
+    
+    float pixelValue = 0;
+    uint count = 0;
+    for (int dx = -blurSize; dx <= blurSize; dx++)
+    {
+        for (int dy = -blurSize; dy <= blurSize; dy++)
+        {
+            count++;
+            
+            if (dx == 0 && dy == 0)
+                continue;
+            
+            pixelValue += SampleConway.Load(int3(id.xy + int2(dx, dy), 0));
+        }
+    }
+    pixelValue /= count;
+    
+    
+    ResultBlur[id.xy] = float4(pixelValue,pixelValue,pixelValue,1);
+    
+}
