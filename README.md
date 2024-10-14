@@ -21,3 +21,5 @@ El proyecto simula el **Juego de la Vida de Conway**, donde una cuadrícula de c
 - **Perlin.compute**: Genera el ruido Perlin inicial directamente en la GPU.
 - **Conway.compute**: Calcula la evolución de las celdas en paralelo en la GPU.
 - **Blur.compute**: Aplica un desenfoque configurable para mejorar la estética visual de la cuadrícula.
+
+![image](https://github.com/user-attachments/assets/9e12515c-64e6-443e-86ff-6b0f652519f3)
